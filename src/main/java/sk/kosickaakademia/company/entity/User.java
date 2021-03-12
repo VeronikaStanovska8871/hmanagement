@@ -38,7 +38,17 @@ public class User {
         return age;
     }
 
-    public boolean getGender() {
+    public Gender getGender() {
         return gender;
+    }
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", fname='" + fname + '\'' +
+                ", lname='" + lname + '\'' +
+                ", age=" + age +
+                ", gender=" + gender +
+                '}';
     }
 }
