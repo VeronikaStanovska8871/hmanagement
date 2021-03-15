@@ -141,4 +141,7 @@ if (con!=null) {
 
     }
 
+    public boolean changeAge(Integer id, Integer newage) {
+        return true;
+    }
 }
