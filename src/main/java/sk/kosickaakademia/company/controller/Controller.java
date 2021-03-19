@@ -12,6 +12,7 @@ import sk.kosickaakademia.company.enumerator.Gender;
 import sk.kosickaakademia.company.log.Log;
 import sk.kosickaakademia.company.util.Util;
 
+
 import java.text.ParseException;
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class Controller {
             String fname = (String) object.get("fname").trim();
             String lname = (String) object.get("lname").trim();
             String gender = (String) object.get("gender");
+            int age = Integer.parseInt((String) object.get(fname));
             System.out.println(age);
             if (fname == null || lname == null || lname.trim().length() == 0 || fname.trim().length() == 0 || age < 1) {
                 log.error("Missing lname or fname.");
@@ -69,14 +71,13 @@ public class Controller {
     public ResponseEntity<String> getAllUsersByAge(@RequestParam(value = "from") int from, @RequestParam(value = "to") int to) {
         if (from > to || from < 1)
             return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body("");
-    }
-
-    List<User> list = new Database().getUsersByAge(from, to);
+        List<User> list = new Database().getUsersByAge(from, to);
     String json = new Util().getJson(list);
     return ResponseEntity.status(200).contentType(MediaType.APPLICATION_JSON).body("{}");
+    }
 
-        @PutMapping("/users/{id}")
-        public ResponseEntity<String> changeAge(@PathVariable Integer id, @RequestBody String body){
+    @PutMapping("/users/{id}")
+    public ResponseEntity<String> changeAge(@PathVariable Integer id, @RequestBody String body){
             JSONObject object = null;
             try {
                 object = (JSONObject) new JSONParser().parse(body);
@@ -98,4 +99,10 @@ public class Controller {
             return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body("{}");
 
         }
+    @GetMapping("/")
+    public ResponseEntity<String> overview(){
+        List<User> list = new Database().getAllUsers();
+        String jsonOverview = new Util().getOverview(list);
+        return ResponseEntity.status(200).contentType(MediaType.APPLICATION_JSON).body(jsonOverview.toString());
+    }
 }
