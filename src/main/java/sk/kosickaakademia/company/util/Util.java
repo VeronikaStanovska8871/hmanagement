@@ -4,7 +4,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import sk.kosickaakademia.company.entity.User;
 import sk.kosickaakademia.company.enumerator.Gender;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -53,8 +52,6 @@ public class Util {
         String date = simpleDateFormat.format(new Date());
         return date;
     }
-
-
     public String normalizeName(String name){
         if(name==null || name.equals(""))
             return "";

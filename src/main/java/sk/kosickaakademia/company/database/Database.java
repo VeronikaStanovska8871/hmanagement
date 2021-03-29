@@ -1,39 +1,48 @@
 package sk.kosickaakademia.company.database;
-
-
 import sk.kosickaakademia.company.entity.User;
 import sk.kosickaakademia.company.log.Log;
 import sk.kosickaakademia.company.util.Util;
-
+import java.io.InputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class Database {
-    String url= "jdbc:mysql:/itsovy.sk:3306/company";
-    String username="mysqluser";
-    String password="Kosice2021!";
     Log log = new Log();
+    private final String INSERTQUERY ="INSERT INTO user (fname, lname, age, gender) " +
+            " VALUES ( ?, ?, ?, ?)";
     public Connection getConnection(){
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Properties props = new Properties();
+            InputStream loader = getClass().getClassLoader().getResourceAsStream("database.properties");
+            if(loader==null){
+                log.error("null");
+                return null;
+            }
+            props.load(loader);
+            String url = props.getProperty("url");
+            String username=props.getProperty("username");
+            String password=props.getProperty("password");
             Connection con = DriverManager.getConnection(url, username, password);
-            log.print("Connection successful");
+            log.print("Connected");
             return con;
-        } catch (SQLException | ClassNotFoundException throwables) {
-           log.error(throwables.toString());
+        } catch (Exception ex) {
+            log.error(ex.toString());
         }
         return null;
     }
-    public void closeConnection(Connection con){
-if (con!=null) {
-    try {
-        con.close();
-        log.print("Connection closed");
-    } catch (SQLException throwables) {
-        log.error(throwables.toString());
-    }
-}
+
+    public void closeConnection(Connection con)  {
+
+        if(con!=null) {
+            try {
+                con.close();
+                log.print("Connection closed");
+            }catch(SQLException e){
+                log.error(e.toString());
+            }
+        }
     }
     public boolean insertNewUser(User user){
         if(user==null)
@@ -47,15 +56,55 @@ if (con!=null) {
                 ps.setString(1,fname);
                 ps.setString(2,lname);
                 ps.setInt(3,user.getAge());
+                ps.setInt(4,user.getGender().getValue());
                 int result = ps.executeUpdate();
                 closeConnection(con);
-                log.print("New user has been added");
+                log.print("New user has been added to the DB");
                 return result==1;
             }catch(SQLException ex){
                 log.error(ex.toString());
             }
         }
         return false;
+    }
+    public List<User> getFemales(){
+        log.info("Executing: getFemales()");
+        String sql = "SELECT * FROM user WHERE gender = 1";
+        try (Connection con = getConnection()) {
+            if(con!=null) {
+                PreparedStatement ps = con.prepareStatement(sql);
+                return executeSelect(ps);
+            }
+        }catch(Exception ex){
+            log.error(ex.toString());
+        }
+        return null;
+    }
+    public List<User> getMales(){
+        String sql = "SELECT * FROM user WHERE gender = 0 SELECT *";
+        try {
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+            return executeSelect(ps);
+        }catch(Exception ex){
+            log.error(ex.toString());
+        }
+        return null;
+    }
+    public List<User> getUsersByAge(int from, int to){
+
+        if(to<from)
+            return null;
+        try {
+            String sql = "SELECT * FROM user WHERE age >= ? AND age <= ?";
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+            ps.setInt(1,from);
+            ps.setInt(2, to);
+
+            return executeSelect(ps);
+        }catch(Exception ex){
+            log.error(ex.toString());
+        }
+        return null;
     }
     private List<User> executeSelect(PreparedStatement ps) throws SQLException {
         ResultSet rs =  ps.executeQuery();
@@ -74,46 +123,8 @@ if (con!=null) {
         log.info("Number of records: "+ count);
         return list;
     }
-    public List<User> getFemales(){
-        log.info("Executing: getFemales()");
-        String sql = "SELECT * FROM user WHERE gender = 1";
-        try (Connection con = getConnection()) {
-            if(con!=null) {
-                PreparedStatement ps = con.prepareStatement(sql);
-                return executeSelect(ps);
-            }
-        }catch(Exception ex){
-            log.error(ex.toString());
-        }
-        return null;
-    }
-    public List<User> getMales(){
-        String sql = "SELECT * FROM user WHERE gender = 0";
-        try {
-            PreparedStatement ps = getConnection().prepareStatement(sql);
-            return executeSelect(ps);
-        }catch(Exception ex){
-            log.error(ex.toString());
-        }
-        return null;
-    }
-    public List<User> getUsersByAge(int from, int to){
 
-        if(to<from)
-            return null;
-        try {
-            String sql = "SELECT * FROM user WHERE age >= ? AND age <= ?";
-            PreparedStatement ps = getConnection().prepareStatement(sql);
-            ps.setInt(1,from);
-            ps.setInt(2, to);
-            return executeSelect(ps);
-        }catch(Exception ex){
-            log.error(ex.toString());
-        }
-        return null;
-    }
     public List<User> getAllUsers(){
-
         String sql = "SELECT * FROM user";
         try {
             PreparedStatement ps = getConnection().prepareStatement(sql);
@@ -124,6 +135,7 @@ if (con!=null) {
         return null;
 
     }
+
     public User getUserById(int id){
         String sql = "SELECT * FROM user WHERE id = ?";
         try {
@@ -140,8 +152,19 @@ if (con!=null) {
         return null;
 
     }
-
-    public boolean changeAge(Integer id, Integer newage) {
-        return true;
+    public boolean changeAge(int id, int newAge){
+        return false;
     }
+    public List<User> getUser(String pattern) {
+        List<User> users = getAllUsers();
+        List<User> list = new ArrayList<>();
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).getFname().contains(pattern)) {
+                list.add(users.get(i));
+            }
+        }
+        return list;
+    }
+
 }
+

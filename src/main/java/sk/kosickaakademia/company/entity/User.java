@@ -3,9 +3,6 @@ package sk.kosickaakademia.company.entity;
 import sk.kosickaakademia.company.enumerator.Gender;
 
 public class User {
-
-
-
     private int id;
     private String fname;
     private String lname;
